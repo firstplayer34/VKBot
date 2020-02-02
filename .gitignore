@@ -2,3 +2,4 @@
 venv/
 constants.py
 output.txt
+*.pyc
