@@ -16,6 +16,8 @@ def find_pattern(text):
                 s+=j+'\n'
             used_responses.append(i)
     return s, used_responses
+
+    
 if __name__ == "__main__":
     find_pattern("привет")
     vk_session = vk_api.VkApi(token=TOKEN)
