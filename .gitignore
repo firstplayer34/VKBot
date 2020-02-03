@@ -3,3 +3,4 @@ venv/
 constants.py
 output.txt
 *.pyc
+test.py
