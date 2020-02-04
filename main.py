@@ -7,7 +7,7 @@ from task import Task
 import utilites
 
 ON_TASK = False
-
+#i know how git work"s
 #Working with patterns and returning a more comfortable answer
 def find_pattern(text):
     s = ""
