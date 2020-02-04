@@ -2,9 +2,10 @@ from constants import TOKEN #токен высылаю на ВК
 import requests
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
-from patterns import ANSWER_ASK_MESSAGE, patterns
+from patterns import ANSWER_ASK_MESSAGE, patterns, WARNING_ANSWER
 from task import Task
 import utilites
+import os.path
 
 #Работа с паттернами для получения подходящего ответа
 def find_pattern(text):
@@ -12,6 +13,13 @@ def find_pattern(text):
     """
     Находит и составляет ответ из patterns.py
     Подходит для запросов, не связанных с заданиями
+
+    params:
+        text: Текст, по которому будет искаться ответ
+
+    returns:
+        s: Текст сообщения для ответа
+        used_responses: Все сообщения из patterns, используемые для ответа
     """
 
     #TODO: Увеличить количество пустяковых запросов
@@ -28,18 +36,56 @@ def find_pattern(text):
 
 
 def Vk_send_message(vk,event,text):
-
-    """Отправляет сообщение по event.user_id с переданным текстом"""
-
+    """
+    Отправляет сообщение по event.user_id с переданным текстом
+    
+    params:
+        vk: Сессия VK
+        event: Событие сессии
+        text: Текст сообщения
+    
+    """
     vk.messages.send(
         user_id = event.user_id,
         message = text,
         random_id = utilites.g_id()
     )
 
-if __name__ == "__main__":
-    import os.path
+#Проверяет наличие файла и нужен ли ответ пользователю на задание
+def answer_required(event):
+    """
+    Проверяет наличие файла и нужен ли ответ пользователю на задание
 
+    """
+    if os.path.exists("users/"+str(event.user_id)+".txt") is True:
+        if len(open("users/"+str(event.user_id)+".txt","r").read()) != 0:
+            return True
+        else:
+            return False
+    return False
+
+
+def log_task(event, task):
+    """
+    Записывает в файл номер задания, которое запросил пользователь
+
+    """
+    f = open("users/"+str(event.user_id)+".txt", "w")
+    f.write(str(task.number))
+    f.close()
+
+
+def delog_task(event):
+    """
+    Удаляет задание из списка ученика
+
+    """
+
+    f = open("users/"+str(event.user_id)+".txt", "w")
+    f.close()
+
+
+if __name__ == "__main__":
     #Создание сессии работы бота
     vk_session = vk_api.VkApi(token=TOKEN)
     longpoll = VkLongPoll(vk_session)
@@ -50,27 +96,40 @@ if __name__ == "__main__":
         if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
 
             #TODO: Проработать ответы для простого ответа и для работы с заданиями
-            #TODO: Переработать код представленный ниже
 
             try:
-                if (os.path.exists("users/"+str(event.user_id)+".txt")) is False:
-                    f = open("users/"+str(event.user_id)+".txt",'w')
-                    f.close()
-                file = open("users/"+str(event.user_id)+".txt", "r")
-                if (event.text == "Случайное задание") and file.read() == "":
-                    test = Task(None)
-                    Vk_send_message(vk,event,test.__repr__())
-                    Vk_send_message(vk, event, ANSWER_ASK_MESSAGE)
-                    with open("users/"+str(event.user_id)+".txt","w") as o:
-                        o.write(str(test.number))
-                elif len(file.read()) != 0:
-                    task_number = int(file.read())
-                    test = Task(task_number)
-                    Vk_send_message(vk, event, test.answer)
-                    with open("users/"+str(event.user_id)+".txt",'w') as o:
-                        o.write("")
+                #Мы не знаем, просил ли ранее пользователь задание. Поэтому,
+                #проверка работает так: для каждого пользователя создаётся файл
+                #в папке users с его id. В единственной строке записывается номер задания
+                #которое он запаршивал. Если файл не пустой, то первая строка - номер задания
+                #на которое требуется вывести ответ
+                #Если файл пустой, то и ответ на запрошенное задание не требуется
+                if event.text == "Случайное задание":
+                    Vk_send_message(vk, event,WARNING_ANSWER)
+                    if answer_required(event):
+                        Vk_send_message(vk, event, "Закончите предыдущее задание!(test)")
+                    else:
+                        task = Task(None)
+                        Vk_send_message(vk, event, task.text)
+                        Vk_send_message(vk, event, ANSWER_ASK_MESSAGE)
+                        log_task(event,task)
+                elif event.text == "\q":
+                    if answer_required(event):
+                        Vk_send_message(vk, event, "Отмена задания (test)")
+                        delog_task(event)
+                        
+                elif "Ответ:" in event.text:
+                    try: #На случай, если пользователь просто так написал "Ответ"
+                        with open("users/"+str(event.user_id)+".txt") as f:
+                            task_number = int(f.read())
+                        task = Task(task_number)
+                        Vk_send_message(vk, event, task.answer)
+                        delog_task(event)
+                    except Exception:
+                        Vk_send_message(vk, event, "Произошла ошибка.\nПопробуйте ещё раз(test)")
+
                 else:
-                    Vk_send_message(vk,event,find_pattern(event.text)[0])
-                file.close()
+                    Vk_send_message(vk, event,find_pattern(event.text)[0])
+
             except vk_api.exceptions.ApiError:
-                Vk_send_message(vk, event, "Произошла ошибка.\nПопробуйте ещё раз")
+                Vk_send_message(vk, event, "Произошла ошибка.\nПопробуйте ещё раз(test)")

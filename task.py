@@ -20,7 +20,7 @@ class Task:
                 number: Номер задания, как на сайте (пример: 6567)
                 url: Ссыла на задание
                 text: Текст задания
-                task_number: ???
+                task_number: ??? (Должен быть порядковый номер в варианте (например, задание 22))
                 answer: Ответ на задание (пример: Ответ: 123)
 
         """
@@ -32,7 +32,8 @@ class Task:
         self.url = REQUEST_URL+str(self.number)
         self.text = self.get_task_text().replace("\xad","") #в некоторых заданиях есть символы, похожие на пробелы
         self.text = utilites.format_choise_task(self.text) #Если задание с выбором ответа, то добавление переноса строки перед вариантами ответа
-       
+        self.find_answer()
+
         #TODO: Проработать задания с выбором ответа, когда есть, например, несколько отрывков текста и они помечены буквами
         
         try:
@@ -99,4 +100,5 @@ class Task:
 
 if __name__ == "__main__":
     test = Task(7643)
-    print(test.number)
+    print(test.url)
+    print(test.answer)
