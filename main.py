@@ -1,8 +1,10 @@
+#Запуск на компьютере создаст второго бота и все сообщения будут дублироваться
+
 from constants import TOKEN #токен высылаю на ВК
 import requests
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
-from patterns import ANSWER_ASK_MESSAGE, patterns, WARNING_ANSWER
+from patterns import ANSWER_ASK_MESSAGE, WARNING_ANSWER, SOURCE, patterns
 from task import Task
 import utilites
 import os.path
@@ -104,32 +106,38 @@ if __name__ == "__main__":
                 #которое он запаршивал. Если файл не пустой, то первая строка - номер задания
                 #на которое требуется вывести ответ
                 #Если файл пустой, то и ответ на запрошенное задание не требуется
-                if event.text == "Случайное задание":
-                    Vk_send_message(vk, event,WARNING_ANSWER)
+                if event.text.lower() == "случайное задание":
                     if answer_required(event):
-                        Vk_send_message(vk, event, "Закончите предыдущее задание!(test)")
+                        Vk_send_message(vk, event, "Закончите предыдущее задание!")
                     else:
                         task = Task(None)
-                        Vk_send_message(vk, event, task.text)
+                        Vk_send_message(vk, event, task.__repr__())
                         Vk_send_message(vk, event, ANSWER_ASK_MESSAGE)
                         log_task(event,task)
                 elif event.text == "\q":
                     if answer_required(event):
-                        Vk_send_message(vk, event, "Отмена задания (test)")
-                        delog_task(event)
-                        
-                elif "Ответ:" in event.text:
+                        Vk_send_message(vk, event, "Отмена задания")
+                        delog_task(event)      
+                elif "Ответ:" in event.text or "ответ:" in event.text:
                     try: #На случай, если пользователь просто так написал "Ответ"
                         with open("users/"+str(event.user_id)+".txt") as f:
                             task_number = int(f.read())
                         task = Task(task_number)
-                        Vk_send_message(vk, event, task.answer)
+                        Vk_send_message(vk, event, task.answer+'\n'+task.url)
+                        
                         delog_task(event)
                     except Exception:
-                        Vk_send_message(vk, event, "Произошла ошибка.\nПопробуйте ещё раз(test)")
-
+                        Vk_send_message(vk, event, "Нет задачи - нет ответа")
+                elif event.text.lower() == "текущее задание":
+                    if answer_required(event):
+                        with open("users/"+str(event.user_id)+".txt") as f:
+                            task_number = int(f.read())
+                        task = Task(task_number)
+                        Vk_send_message(vk, event, task.__repr__())
+                    else:
+                        Vk_send_message(vk, event, "Текущего задания нет")
                 else:
                     Vk_send_message(vk, event,find_pattern(event.text)[0])
 
             except vk_api.exceptions.ApiError:
-                Vk_send_message(vk, event, "Произошла ошибка.\nПопробуйте ещё раз(test)")
+                Vk_send_message(vk, event, "Произошла ошибка.\nПопробуйте ещё раз")

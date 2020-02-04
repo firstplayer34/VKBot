@@ -1,4 +1,4 @@
-from patterns import REQUEST_URL
+from patterns import REQUEST_URL, SOURCE
 import re
 from bs4 import BeautifulSoup
 import requests
@@ -33,6 +33,7 @@ class Task:
         self.text = self.get_task_text().replace("\xad","") #в некоторых заданиях есть символы, похожие на пробелы
         self.text = utilites.format_choise_task(self.text) #Если задание с выбором ответа, то добавление переноса строки перед вариантами ответа
         self.find_answer()
+        self.source = SOURCE
 
         #TODO: Проработать задания с выбором ответа, когда есть, например, несколько отрывков текста и они помечены буквами
         
@@ -87,15 +88,13 @@ class Task:
             end_answer = task_text[task_answer:].find('<')
             self.answer = task_text[task_answer:task_answer+end_answer]
         else:
-            self.answer = "Нет ответа"
+            self.answer = "Ответ на задание недоступен"
 
 
     def __repr__(self):
         s = ""
-        s+=self.url+'\n'
-        s+=str(self.number)+'\n'
-        s+=self.task_number+'\n'
-        s+=self.text
+        s+=self.text+'\n'
+        s+=self.source
         return s
 
 if __name__ == "__main__":
