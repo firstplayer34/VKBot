@@ -1,6 +1,6 @@
 .vscode/**
 venv/
-constants.py
+botCode/constants.py
 output.txt
 *.pyc
 test.py
