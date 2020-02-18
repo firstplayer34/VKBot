@@ -1,7 +1,7 @@
 #Всякие функции, полезные в использовании в нескольких пакетах
 
 import re
-import patterns
+import botCode.patterns as patterns
 
 def get_numbers(string):
     """

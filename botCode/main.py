@@ -1,12 +1,13 @@
 #Запуск на компьютере создаст второго бота и все сообщения будут дублироваться
 
-from constants import TOKEN #токен высылаю на ВК
+from botCode.constants import TOKEN #токен высылаю на ВК
 import requests
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
-from patterns import ANSWER_ASK_MESSAGE, WARNING_ANSWER, SOURCE, patterns
-from task import Task
-import utilites
+from botCode.patterns import ANSWER_ASK_MESSAGE, WARNING_ANSWER, SOURCE
+from botCode.patterns import patterns as patterns
+from botCode.task import Task
+import botCode.utilites as utilites
 import os.path
 
 #Работа с паттернами для получения подходящего ответа
@@ -72,6 +73,8 @@ def log_task(event, task):
     Записывает в файл номер задания, которое запросил пользователь
 
     """
+    if not (os.path.exists("users")):
+        os.mkdir("users")
     f = open("users/"+str(event.user_id)+".txt", "w")
     f.write(str(task.number))
     f.close()
@@ -110,6 +113,7 @@ def start_bot():
                         Vk_send_message(vk, event, "Закончите предыдущее задание!")
                     else:
                         task = Task(None)
+                        Vk_send_message(vk,event,"(test)")
                         Vk_send_message(vk, event, task.__repr__())
                         Vk_send_message(vk, event, ANSWER_ASK_MESSAGE)
                         log_task(event,task)
