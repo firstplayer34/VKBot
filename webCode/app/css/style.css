@@ -1,0 +1,9 @@
+.body{
+    flex: auto;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vh;
+    height: 100vh;
+    background-color: cadetblue;
+}

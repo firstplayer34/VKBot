@@ -1,9 +1,9 @@
-from patterns import REQUEST_URL, SOURCE
+from botCode.patterns import REQUEST_URL, SOURCE
 import re
 from bs4 import BeautifulSoup
 import requests
 import random
-import utilites
+import botCode.utilites as utilites
 
 class Task:
     def __init__(self, number):
