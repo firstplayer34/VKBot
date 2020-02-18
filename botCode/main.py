@@ -41,12 +41,12 @@ def find_pattern(text):
 def Vk_send_message(vk,event,text):
     """
     Отправляет сообщение по event.user_id с переданным текстом
-    
+
     params:
         vk: Сессия VK
         event: Событие сессии
         text: Текст сообщения
-    
+
     """
     vk.messages.send(
         user_id = event.user_id,
@@ -120,14 +120,13 @@ def start_bot():
                 elif event.text == "\q":
                     if answer_required(event):
                         Vk_send_message(vk, event, "Отмена задания")
-                        delog_task(event)      
+                        delog_task(event)
                 elif "Ответ:" in event.text or "ответ:" in event.text:
                     try: #На случай, если пользователь просто так написал "Ответ"
                         with open("users/"+str(event.user_id)+".txt") as f:
                             task_number = int(f.read())
                         task = Task(task_number)
                         Vk_send_message(vk, event, task.answer+'\n'+task.url)
-                        
                         delog_task(event)
                     except Exception:
                         Vk_send_message(vk, event, "Нет задачи - нет ответа")
